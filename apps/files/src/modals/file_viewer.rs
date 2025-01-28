@@ -34,13 +34,13 @@ pub fn file_viewer_view(s: &FileManagerState) -> node::Node {
                 "size",
                 Size {
                     width: Dimension::Px(32.0),
-                    height: Dimension::Px(34.0)
+                    height: Dimension::Px(34.0),
                 }
             )
             .style("background_color", Color::TRANSPARENT)
             .style("border_color", Color::TRANSPARENT)
             .style("active_color", Color::rgba(85., 85., 85., 0.50)),
-        lay![margin:[5.,5.,5.,5.], size:[32,34]]
+        lay![margin: [5., 5., 5., 5.], size: [32, 34]]
     ))
     .push(node!(
         Text::new(txt!(file_name))
@@ -49,7 +49,7 @@ pub fn file_viewer_view(s: &FileManagerState) -> node::Node {
             .style("line_height", 24.)
             .style("font", "Space Grotesk")
             .style("font_weight", FontWeight::Normal),
-        lay![margin:[5.,20.,5.,5.]]
+        lay![margin: [5., 20., 5., 5.]]
     ));
 
     let mut root = node!(
@@ -58,14 +58,14 @@ pub fn file_viewer_view(s: &FileManagerState) -> node::Node {
             direction: Direction::Column,
             cross_alignment: Alignment::Stretch,
             axis_alignment: Alignment::Start,
-            size_pct:[100,100]
+            size_pct: [100, 100],
         ]
     );
 
     root = root.push(header);
     root = root.push(node!(HDivider {
         size: 1.,
-        color: Color::MID_GREY
+        color: Color::MID_GREY,
     }));
 
     // Content area scrollable
@@ -75,8 +75,8 @@ pub fn file_viewer_view(s: &FileManagerState) -> node::Node {
             direction: Direction::Column,
             cross_alignment: Alignment::Center,
             axis_alignment: Alignment::Start,
-            padding:[20.,20.,20.,20. ],
-            size_pct:[100,100],
+            padding: [20., 20., 20., 20.],
+            size_pct: [100, 100],
         ]
     );
 
@@ -86,7 +86,7 @@ pub fn file_viewer_view(s: &FileManagerState) -> node::Node {
             let img_new = Image::new(file_path.clone());
             content = content.push(node!(
                 Image::dynamic_load_from(img_new, Some(file_path)),
-                lay![size:[200,200], margin:[10.,10.,10.,10.]]
+                lay![size: [200, 200], margin: [10., 10., 10., 10.]]
             ));
         } else {
             content = content.push(node!(Text::new(txt!("No file selected"))
@@ -103,8 +103,10 @@ pub fn file_viewer_view(s: &FileManagerState) -> node::Node {
             .style("font", "Space Grotesk")));
     } else if let Some(content_str) = &s.file_content {
         // Scrollable text area
+        let scrollable = Scrollable::new(size!(440, 320))
+            .on_scroll_end(Box::new(|| msg!(Message::FetchFileContent)));
         let mut scroll = node!(
-            Scrollable::new(size!(440, 320)),
+            scrollable,
             lay![
                 size: [440, 320],
                 direction: Direction::Column,
@@ -118,7 +120,7 @@ pub fn file_viewer_view(s: &FileManagerState) -> node::Node {
                 .style("size", 14.0)
                 .style("line_height", 20.0)
                 .style("font", "Space Grotesk"),
-            lay![margin:[5.,5.,5.,5.]]
+            lay![margin: [5., 5., 5., 5.]]
         ));
 
         content = content.push(scroll);

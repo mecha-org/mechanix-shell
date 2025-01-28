@@ -10,8 +10,10 @@ use mctk_core::{event, Node};
 use mctk_core::{lay, msg, rect, size, size_pct, txt, Color};
 use mctk_macros::{component, state_component_impl};
 use std::fs;
+use std::fs::File;
 use std::hash::Hash;
 use std::io;
+use std::io::{BufRead, BufReader, Read};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -71,6 +73,7 @@ pub enum Message {
     ConfirmAction,
     ConfirmDelete,
     UpdateFolderName(String),
+    FetchFileContent,
 }
 
 #[derive(Debug)]
@@ -78,6 +81,7 @@ pub struct FileManagerState {
     pub current_path: PathBuf,
     pub entries: Vec<PathBuf>,
     pub selected_file: Option<PathBuf>,
+    pub file_reader: Option<BufReader<File>>,
     pub copied_file: Option<PathBuf>,
     pub message: String,
     pub file_viewer_open: bool,
@@ -130,13 +134,14 @@ pub fn read_entries(path: PathBuf) -> Vec<PathBuf> {
 #[state_component_impl(FileManagerState)]
 impl Component for FileManager {
     fn init(&mut self) {
-        let current_path = PathBuf::from("/home/mecha");
+        let current_path = PathBuf::from("/home/mecha/");
         let entries = read_entries(current_path.clone());
 
         self.state = Some(FileManagerState {
             current_path,
             entries,
             selected_file: None,
+            file_reader: None,
             copied_file: None,
             message: String::new(),
             file_viewer_open: false,
@@ -207,19 +212,57 @@ impl Component for FileManager {
                         } else if self.state_mut().file_is_pdf {
                             // Handle PDF loading if necessary
                         } else if ext == "txt" {
-                            match fs::read_to_string(&path) {
-                                Ok(content) => {
-                                    self.state_mut().file_content = Some(content);
-                                }
-                                Err(_) => {
-                                    self.state_mut().file_no_preview = true;
+                            self.state_mut().file_no_preview = false;
+                            let file = File::open(path.clone()).unwrap();
+                            let mut reader = BufReader::new(file);
+                            let mut lines = Vec::new();
+
+                            // Read up to 30 lines (or fewer if the file has less)
+                            for line in reader.by_ref().lines().take(30) {
+                                match line {
+                                    Ok(content) => lines.push(content),
+                                    Err(e) => {
+                                        eprintln!("Error reading line: {}", e);
+                                        break;
+                                    }
                                 }
                             }
-                        } else {
-                            if let Ok(content) = fs::read_to_string(&path) {
-                                self.state_mut().file_content = Some(content);
+                            // Join lines with newlines
+                            if !lines.is_empty() {
+                                self.state_mut().file_content = Some(lines.join("\n"));
                             } else {
                                 self.state_mut().file_no_preview = true;
+                            }
+
+                            self.state_mut().file_reader = Some(reader);
+                        } else {
+                            self.state_mut().file_no_preview = false;
+
+                            match File::open(&path) {
+                                Ok(file) => {
+                                    let reader = BufReader::new(file);
+                                    let mut lines = Vec::new();
+
+                                    for line in reader.lines().take(30) {
+                                        match line {
+                                            Ok(content) => lines.push(content),
+                                            Err(e) => {
+                                                eprintln!("Error reading line: {}", e);
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if !lines.is_empty() {
+                                        self.state_mut().file_content = Some(lines.join("\n"));
+                                    } else {
+                                        self.state_mut().file_no_preview = true;
+                                    }
+                                }
+                                Err(e) => {
+                                    eprintln!("Error opening file: {}", e);
+                                    self.state_mut().file_no_preview = true;
+                                }
                             }
                         }
                     }
@@ -419,6 +462,40 @@ impl Component for FileManager {
                     self.state_mut().current_path.pop();
                     self.state_mut().is_delete_modal_open = false; // Close delete modal
                     self.state_mut().entries = read_entries(self.state_ref().current_path.clone());
+                }
+                Message::FetchFileContent => {
+                    self.state_mut().message = "FetchFileContent".to_string();
+                    if let Some(reader) = &mut self.state_mut().file_reader {
+                        let mut lines = Vec::new();
+
+                        // Read the next 15 lines
+                        for line in reader.by_ref().lines().take(15) {
+                            match line {
+                                Ok(content) => lines.push(content),
+                                Err(e) => {
+                                    eprintln!("Error reading line: {}", e);
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Append new lines to the existing content in state
+                        if !lines.is_empty() {
+                            if let Some(existing_content) = &mut self.state_mut().file_content {
+                                existing_content.push('\n');
+                                existing_content.push_str(&lines.join("\n"));
+                            } else {
+                                self.state_mut().file_content = Some(lines.join("\n"));
+                            }
+                        } else {
+                            // Handle end-of-file: no more lines to read
+                            self.state_mut().file_no_preview = true;
+                            self.state_mut().message = "End of file reached.".to_string();
+                            self.state_mut().file_reader = None;
+                        }
+                    } else {
+                        self.state_mut().message = "No file is open for reading.".to_string();
+                    }
                 }
             }
         }
