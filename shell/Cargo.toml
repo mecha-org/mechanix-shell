@@ -12,9 +12,7 @@ keywords.workspace = true
 
 [workspace]
 members = [
-    # "app-drawer",
     # "greeter",
-    # "home-screen",
     "launcher",
     "keyboard",
     # "lock-screen",
