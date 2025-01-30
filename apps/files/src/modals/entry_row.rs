@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::UNIX_EPOCH;
 
+use crate::gui::Message;
+use chrono::{DateTime, Local};
 use mctk_core::component::Component;
 use mctk_core::layout::{Alignment, Dimension, Direction, Size};
 use mctk_core::style::Styled;
@@ -8,8 +11,6 @@ use mctk_core::widgets::{self, Div, HDivider, IconButton, IconType, Image, Text}
 use mctk_core::{event, Node};
 use mctk_core::{lay, rect, size, size_pct, txt, Color};
 use mctk_core::{msg, node};
-
-use crate::gui::Message;
 
 pub struct ClicableIconComponent {}
 
@@ -42,6 +43,7 @@ pub struct EntryRow {
     pub icon_2: String,
     pub selected_entry: Option<Arc<PathBuf>>,
     pub is_modal_open: bool,
+    pub current_path: PathBuf,
 }
 
 #[derive(Debug)]
@@ -122,6 +124,30 @@ impl Component for EntryRow {
         if self.is_file {
             let file_name = self.title.clone();
             // println!("entry row is being called,");
+
+            let last_modified: DateTime<Local> = self
+                .current_path
+                .clone()
+                .metadata()
+                .unwrap()
+                .modified()
+                .unwrap_or(UNIX_EPOCH)
+                .into();
+            let last_modified = last_modified.format("%d %b %Y %I:%M%p").to_string();
+
+            //last modified section
+            row = row.push(node!(
+                Text::new(txt!(last_modified))
+                    .style("color", Color::DARK_GREY)
+                    .style("font", "Inter")
+                    .with_class("text-xs leading-5 font-normal"),
+                lay![
+                    size: [200, 20],
+                    axis_alignment: Alignment::End,
+                    cross_alignment: Alignment::Center,
+                ]
+            ));
+
             row = row.push(node!(
                 IconButton::new(self.icon_2.clone())
                     .on_click(Box::new(move || Box::new(Message::OpenModal(
@@ -142,6 +168,26 @@ impl Component for EntryRow {
                     .style("radius", 4.),
                 lay![
                     size: [52, 52],
+                    axis_alignment: Alignment::End,
+                    cross_alignment: Alignment::Center,
+                ]
+            ));
+        } else {
+            //no of entries
+            let no_of_entries = self
+                .current_path
+                .clone()
+                .read_dir()
+                .unwrap()
+                .count();
+
+            row = row.push(node!(
+                Text::new(txt!(format!("{} items", no_of_entries)))
+                    .style("color", Color::DARK_GREY)
+                    .style("font", "Inter")
+                    .with_class("text-xs font-normal"),
+                lay![
+                    size: [200, 20],
                     axis_alignment: Alignment::End,
                     cross_alignment: Alignment::Center,
                 ]

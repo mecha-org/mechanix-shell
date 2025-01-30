@@ -19,7 +19,7 @@ use std::sync::Arc;
 
 use crate::folder_options;
 use crate::modals::entry_row::EntryRow;
-use crate::modals::{confirmation_modal, delete_modal, file_options, file_viewer};
+use crate::modals::{confirmation_modal, delete_modal, file_details, file_options, file_viewer};
 
 pub struct ClicableIconComponent {
     pub on_click: Option<Box<dyn Fn() -> Box<Message> + Send + Sync>>,
@@ -74,6 +74,7 @@ pub enum Message {
     ConfirmDelete,
     UpdateFolderName(String),
     FetchFileContent,
+    GetDetailsFile,
 }
 
 #[derive(Debug)]
@@ -85,6 +86,7 @@ pub struct FileManagerState {
     pub copied_file: Option<PathBuf>,
     pub message: String,
     pub file_viewer_open: bool,
+    pub file_details_open: bool,
     pub view_file: Option<PathBuf>,
     pub file_content: Option<String>,
     pub file_is_image: bool,
@@ -134,7 +136,7 @@ pub fn read_entries(path: PathBuf) -> Vec<PathBuf> {
 #[state_component_impl(FileManagerState)]
 impl Component for FileManager {
     fn init(&mut self) {
-        let current_path = PathBuf::from("/home/mecha/");
+        let current_path = PathBuf::from("/home/vrn21/Developer/mecha");
         let entries = read_entries(current_path.clone());
 
         self.state = Some(FileManagerState {
@@ -145,6 +147,7 @@ impl Component for FileManager {
             copied_file: None,
             message: String::new(),
             file_viewer_open: false,
+            file_details_open: false,
             view_file: None,
             file_content: None,
             file_is_image: false,
@@ -169,9 +172,13 @@ impl Component for FileManager {
                         self.state_mut().file_viewer_open = false;
                         self.state_mut().view_file = None;
                         self.state_mut().file_content = None;
+                        self.state_mut().file_reader = None;
                         self.state_mut().file_is_image = false;
                         self.state_mut().file_is_pdf = false;
                         self.state_mut().file_no_preview = false;
+                    }
+                    if self.state_mut().file_details_open {
+                        self.state_mut().file_details_open = false;
                     } else {
                         if let Some(parent) = self.state_ref().current_path.parent() {
                             self.state_mut().current_path = parent.to_path_buf();
@@ -311,20 +318,23 @@ impl Component for FileManager {
                     } else {
                         self.state_mut().message = "No file/folder selected.".to_string();
                     }
+                    self.state_mut().is_file_action_modal_open = false;
+                    self.state_mut().is_folder_options_modal_open = false;
                 }
 
                 Message::Paste => {
+                    self.state_mut().is_file_action_modal_open = false;
+                    self.state_mut().is_folder_options_modal_open = false;
                     let state = self.state_mut();
                     if let Some(copied) = &state.copied_file {
-                        let dest = state.current_path.join(copied.file_name().unwrap());
-
+                        let dest = &state.current_path;
                         let res: io::Result<()> = if copied.is_dir() {
                             let opts = CopyOptions::new();
                             fs_extra::dir::copy(copied, &dest, &opts)
                                 .map(|_| ())
                                 .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))
                         } else {
-                            fs::copy(copied, &dest)
+                            fs::copy(copied, &dest.join(copied.file_name().unwrap()))
                                 .map(|_| ())
                                 .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))
                         };
@@ -334,6 +344,7 @@ impl Component for FileManager {
                                 state.message = "Pasted successfully.".to_string();
                             }
                             Err(e) => {
+                                println!("Error pasting: {}", &e);
                                 state.message = format!("Error pasting: {}", e);
                             }
                         }
@@ -497,6 +508,10 @@ impl Component for FileManager {
                         self.state_mut().message = "No file is open for reading.".to_string();
                     }
                 }
+                Message::GetDetailsFile => {
+                    self.state_mut().message = "Get,DetailsFile".to_string();
+                    self.state_mut().file_details_open = true;
+                }
             }
         }
 
@@ -514,6 +529,10 @@ impl Component for FileManager {
         let file_manager_state = self.state_ref();
         if file_manager_state.file_viewer_open {
             return Some(file_viewer::file_viewer_view(file_manager_state));
+        }
+
+        if file_manager_state.file_details_open {
+            return Some(file_details::file_details_view(file_manager_state));
         }
 
         let current_path = file_manager_state.current_path.clone();
@@ -652,10 +671,11 @@ impl Component for FileManager {
             icon_2: "".to_string(),
             selected_entry: None,
             is_modal_open: is_modal_open,
+            current_path: current_path.clone().parent().unwrap().to_path_buf(),
         };
 
         if file_manager_state.is_folder_options_modal_open {
-            entries_div = entries_div.push(folder_options::folder_modal_view());
+            entries_div = entries_div.push(folder_options::folder_modal_view(self.state_ref()));
         }
         if file_manager_state.is_create_rename_modal_open {
             entries_div = entries_div.push(confirmation_modal::confirmation_modal_view(
@@ -708,6 +728,7 @@ impl Component for FileManager {
                 icon_2: righticon,
                 selected_entry: Some(entry_clone),
                 is_modal_open: is_modal_open,
+                current_path: entry.clone(),
             };
 
             entries_div = entries_div.push(node!(btn_row).key(i as u64));
