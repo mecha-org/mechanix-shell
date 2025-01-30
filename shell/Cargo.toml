@@ -20,7 +20,6 @@ members = [
     # "rotate-daemon",
     # "wallpaper-daemon",
     "commons/*",
-    # "power-options",
     # "notification"
 ]
 
