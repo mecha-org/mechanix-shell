@@ -30,7 +30,6 @@ use mctk_core::{
     Color, Node,
 };
 use mctk_macros::{component, state_component_impl};
-use mechanix_system_dbus_client::wireless::KnownNetworkResponse;
 use std::{
     any::Any,
     sync::{Arc, RwLock},

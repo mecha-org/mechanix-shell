@@ -20,7 +20,7 @@ use mctk_core::{
     Color, Node,
 };
 use mctk_core::{event, widgets::HDivider};
-use mechanix_system_dbus_client::wireless::WirelessInfoResponse;
+use networkmanager::network_manager::WirelessInfoResponse;
 
 pub struct ClicableIconComponent {
     pub on_click: Option<Box<dyn Fn() -> Box<Message> + Send + Sync>>,
