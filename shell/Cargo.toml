@@ -18,7 +18,6 @@ members = [
     # "lock-screen",
     # "polkit-agent",
     # "rotate-daemon",
-    # "settings-panel",
     # "status-bar",
     # "wallpaper-daemon",
     "commons/*",
