@@ -15,7 +15,6 @@ members = [
     # "greeter",
     "launcher",
     "keyboard",
-    # "lock-screen",
     # "polkit-agent",
     # "rotate-daemon",
     # "wallpaper-daemon",
