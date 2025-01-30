@@ -5,11 +5,7 @@ use futures::StreamExt;
 use lazy_static::lazy_static;
 use mctk_core::context::Context;
 use mctk_macros::Model;
-use mechanix_system_dbus_client::security;
-use mechanix_system_dbus_client::wireless::{
-    self, KnownNetworkListResponse, KnownNetworkResponse, NotificationStream, WirelessInfoResponse,
-    WirelessScanListResponse, WirelessService,
-};
+use networkmanager::network_manager::{self, KnownNetworkListResponse, KnownNetworkResponse, WirelessInfoResponse, WirelessScanListResponse};
 use tokio::runtime::Runtime;
 use tokio::{select, signal};
 use uuid::Uuid;
@@ -20,7 +16,6 @@ mod access_point;
 mod active_connection;
 mod connection;
 mod device;
-mod network_manager;
 mod settings;
 mod wireless_device;
 
@@ -587,14 +582,5 @@ impl WirelessModel {
         Self::stream_device_state();
         Self::stream_scan_result();
         Self::stream_known_networks();
-    }
-
-    pub fn select_network(network_id: String) {
-        RUNTIME.spawn(async move {
-            WirelessService::connect_to_known_network(network_id.as_str())
-                .await
-                .unwrap();
-            WirelessModel::update();
-        });
     }
 }

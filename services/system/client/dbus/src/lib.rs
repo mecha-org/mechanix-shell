@@ -1,14 +1,5 @@
 mod proxies;
 
-pub mod wireless {
-    use crate::proxies;
-    pub use mechanix_system_dbus_server::system_interfaces::{
-        KnownNetworkListResponse, KnownNetworkResponse, WirelessInfoResponse,
-        WirelessScanListResponse,
-    };
-    pub use proxies::wireless_proxy::{NotificationStream, WirelessService};
-}
-
 pub mod bluetooth {
     use crate::proxies;
     pub use proxies::bluetooth_proxy::{BluetoothService, NotificationStream};

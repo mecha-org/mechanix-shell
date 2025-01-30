@@ -3,13 +3,6 @@ pub use bluetooth_interface::{
     bluetooth_event_notification_stream, BluetoothBusInterface, BluetoothNotificationEvent,
 };
 
-mod wireless_interface;
-pub use wireless_interface::{
-    wireless_event_notification_stream, KnownNetworkListResponse, KnownNetworkResponse,
-    WirelessBusInterface, WirelessInfoResponse, WirelessNotificationEvent,
-    WirelessScanListResponse,
-};
-
 mod display_interface;
 pub use display_interface::DisplayBusInterface;
 

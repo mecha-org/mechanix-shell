@@ -18,7 +18,7 @@ use mctk_core::{
     Color, Node,
 };
 use mctk_macros::component;
-use mechanix_system_dbus_client::wireless::WirelessInfoResponse;
+use networkmanager::network_manager::WirelessInfoResponse;
 
 use super::wireless_model::WirelessModel;
 
