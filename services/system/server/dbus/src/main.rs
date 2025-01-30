@@ -7,13 +7,13 @@ use config::read_configs_yml;
 
 use interfaces::{
     hw_buttons_notification_stream, BluetoothBusInterface, DisplayBusInterface,
-    HostMetricsBusInterface, HwButtonInterface, 
+     HwButtonInterface, 
     // SecurityBusInterface,
 };
 
-use interfaces::{
-    bluetooth_event_notification_stream, host_metrics_event_notification_stream,
-};
+use interfaces::
+    bluetooth_event_notification_stream
+;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -52,25 +52,6 @@ async fn main() -> Result<()> {
         .serve_at("/org/mechanix/services/Display", display_bus)?
         .build()
         .await?;
-
-    let host_metrics_bus = HostMetricsBusInterface {};
-    let host_metrics_bus_connection = connection::Builder::system()?
-        .name("org.mechanix.services.HostMetrics")?
-        .serve_at(
-            "/org/mechanix/services/HostMetrics",
-            host_metrics_bus.clone(),
-        )?
-        .build()
-        .await?;
-
-    let _host_metrics_handle = tokio::spawn(async move {
-        if let Err(e) =
-            host_metrics_event_notification_stream(&host_metrics_bus, &host_metrics_bus_connection)
-                .await
-        {
-            println!("Error in host_metrics_handle notification stream: {}", e)
-        }
-    });
 
     let hw_button_bus = HwButtonInterface {};
     let _hw_button_bus_connection = connection::Builder::system()?
