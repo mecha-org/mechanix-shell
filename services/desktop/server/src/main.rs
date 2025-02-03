@@ -1,5 +1,3 @@
-use std::thread::{self, JoinHandle};
-
 mod dbus;
 mod events;
 mod handlers;
@@ -7,15 +5,14 @@ mod settings;
 
 use anyhow::Result;
 use dbus::interfaces::{
-    sound_event_notification_stream, NotificationBusInterface, Notifier, PowerBusInterface,
+    sound_event_notification_stream, PowerBusInterface,
     SoundBusInterface,
 };
 use handlers::{
     session::SessionHandler,
-    shell::{security::SecurityHandler, upower::UpowerHandler},
+    // shell::{security::SecurityHandler},
 };
 use settings::{read_settings_yml, DesktopServerSettings};
-use tokio::sync::mpsc;
 use zbus::connection;
 
 #[tokio::main]
@@ -77,23 +74,11 @@ async fn main() -> Result<()> {
     });
     handles.push(session_handle);
 
-    // let home_button_handler = HomeButtonHandler::new(settings.home_button.clone());
-    // let home_button_handle = tokio::spawn(async move {
-    //     home_button_handler.run().await;
-    // });
-    // handles.push(home_button_handle);
-
     // let security_handler = SecurityHandler::new();
     // let security_handle = tokio::spawn(async move {
     //     security_handler.run().await;
     // });
     // handles.push(security_handle);
-
-    let upower_handler = UpowerHandler::new();
-    let upower_handle = tokio::spawn(async move {
-        upower_handler.run().await;
-    });
-    handles.push(upower_handle);
 
     for handle in handles {
         handle.await?;

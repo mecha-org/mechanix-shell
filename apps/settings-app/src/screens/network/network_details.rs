@@ -19,7 +19,7 @@ use mctk_core::{
 };
 use mctk_macros::{component, state_component_impl};
 
-use mechanix_system_dbus_client::wireless::WirelessInfoResponse;
+use networkmanager::network_manager::WirelessInfoResponse;
 
 enum NetworkDetailsMessage {
     openModel(bool),

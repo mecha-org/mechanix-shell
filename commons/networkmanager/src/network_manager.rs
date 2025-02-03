@@ -264,3 +264,32 @@ pub trait NetworkManager {
     #[zbus(property)]
     fn wwan_hardware_enabled(&self) -> zbus::Result<bool>;
 }
+
+
+#[derive(Debug, Clone)]
+/// A known WiFi network.
+pub struct KnownNetworkResponse {
+    pub network_id: String,
+    pub ssid: String,
+    pub flags: String,
+}
+
+#[derive(Debug, Clone)]
+/// A known WiFi networkList
+pub struct KnownNetworkListResponse {
+    pub known_network: Vec<KnownNetworkResponse>,
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct WirelessInfoResponse {
+    pub mac: String,
+    pub frequency: String,
+    pub signal: String,
+    pub flags: String,
+    pub name: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct WirelessScanListResponse {
+    pub wireless_network: Vec<WirelessInfoResponse>,
+}
