@@ -767,25 +767,27 @@ impl Component for NetworkingScreen {
             size: 1.,
             color: Color::rgba(83., 83., 83., 1.)
         }));
-        if WirelessModel::get().connected_network.get().is_some() || status.to_owned() == true {
-            scrollable_section = scrollable_section.push(connected_network_row);
+        if status.to_owned() == true {
+            if WirelessModel::get().connected_network.get().is_some() {
+                scrollable_section = scrollable_section.push(connected_network_row);
 
-            scrollable_section = scrollable_section.push(
-                node!(
-                    Div::new().border(Color::rgb(83., 83., 83.), 0.8, (0., 0., 0., 0.)),
-                    lay![
-                        direction: Direction::Row,
-                        size: [480, Auto],
-                        cross_alignment: Alignment::Stretch
-                    ]
-                )
-                .push(node!(
-                    Div::new(),
-                    lay![
-                        size: [ 480, 1 ]
-                    ]
-                )),
-            );
+                scrollable_section = scrollable_section.push(
+                    node!(
+                        Div::new().border(Color::rgb(83., 83., 83.), 0.8, (0., 0., 0., 0.)),
+                        lay![
+                            direction: Direction::Row,
+                            size: [480, Auto],
+                            cross_alignment: Alignment::Stretch
+                        ]
+                    )
+                    .push(node!(
+                        Div::new(),
+                        lay![
+                            size: [ 480, 1 ]
+                        ]
+                    )),
+                );
+            }
 
             for (i, (network, network_id)) in
                 saved_available_networks.clone().into_iter().enumerate()
