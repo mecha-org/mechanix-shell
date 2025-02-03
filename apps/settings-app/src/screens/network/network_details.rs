@@ -359,6 +359,7 @@ impl Component for NetworkDetails {
             IconType::Png,
             Box::new(move || {
                 // WirelessModel::disconnect();
+                WirelessModel::get().forget_network.set(true);
                 WirelessModel::forget_saved_network(connected_network.clone().name.to_string());
                 msg!(Message::ChangeRoute {
                     route: Routes::Network {
