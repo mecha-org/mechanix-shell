@@ -119,9 +119,6 @@ impl Camera {
     }
 
     pub fn save_frame() {
-        let frame = Self::get().frame_buffer.get();
-        frame.save("frame.jpg").unwrap();
-
         RUNTIME.spawn(async {
             GST_CAMERA
                 .lock()
@@ -173,7 +170,23 @@ impl Camera {
                     let buffer = yuyv422_to_rgb(frame.as_raw(), true).unwrap();
                     let frame: ImageBuffer<image::Rgba<u8>, Vec<u8>> =
                         ImageBuffer::from_raw(width, height, buffer).unwrap();
-                    frame.save("frame2.jpg").unwrap();
+
+                    let now = chrono::Local::now();
+                    let formatted_time = now.format("%Y%m%d_%H%M%S").to_string();
+                    let mut pictures_dir = std::path::PathBuf::from(
+                        std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string()),
+                    );
+                    pictures_dir.push("Pictures");
+
+                    if !pictures_dir.exists() {
+                        std::fs::create_dir_all(&pictures_dir)
+                            .expect("Couldn't create directory `Pictures`");
+                    }
+
+                    let filename = format!("Snapshot_{}.jpg", formatted_time);
+                    let filepath = pictures_dir.join(&filename);
+                    frame.save(filepath).unwrap();
+
                     break;
                 }
             }
