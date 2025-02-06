@@ -6,10 +6,10 @@ members = [
 default-members = ["settings-app", "camera",  "files"]
 
 [workspace.package]
-version = "0.1.15"
+version = "0.1.16"
 authors = [
    "Sweta <swetar@mechasystems.com>", 
-   "Naman <namana-mecha@mechasystems.com>",
+   "Naman <namana@mechasystems.com>",
    "Minesh <mineshp-mecha@mechasystems.com>",
 ]
 edition = "2021"
