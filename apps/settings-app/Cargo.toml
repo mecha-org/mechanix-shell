@@ -46,6 +46,7 @@ thiserror = "1.0.59"
 uname = "0.1.1"
 local-ip-address="0.6.3"
 get_if_addrs = "0.5.3"
+networkmanager = { workspace = true }
 
 [build-dependencies]
 tonic-build = "0.9.2"

@@ -5,10 +5,9 @@ use futures::StreamExt;
 use lazy_static::lazy_static;
 use mctk_core::context::Context;
 use mctk_macros::Model;
-use mechanix_system_dbus_client::security;
-use mechanix_system_dbus_client::wireless::{
-    self, KnownNetworkListResponse, KnownNetworkResponse, NotificationStream, WirelessInfoResponse,
-    WirelessScanListResponse, WirelessService,
+use networkmanager::network_manager::{
+    self, KnownNetworkListResponse, KnownNetworkResponse, WirelessInfoResponse,
+    WirelessScanListResponse,
 };
 use tokio::runtime::Runtime;
 use tokio::{select, signal};
@@ -20,7 +19,6 @@ mod access_point;
 mod active_connection;
 mod connection;
 mod device;
-mod network_manager;
 mod settings;
 mod wireless_device;
 
@@ -40,6 +38,7 @@ lazy_static! {
         connected_status: Context::new("".to_string()),
         wireless_mac_address: Context::new("".to_string()),
         ethernet_mac_address: Context::new("".to_string()),
+        forget_network: Context::new(false),
     };
 }
 
@@ -75,6 +74,7 @@ pub struct WirelessModel {
     pub connected_status: Context<String>,
     pub wireless_mac_address: Context<String>,
     pub ethernet_mac_address: Context<String>,
+    pub forget_network: Context<bool>,
 }
 
 impl WirelessModel {
@@ -283,10 +283,15 @@ impl WirelessModel {
                     .unwrap()
                     .to_string();
 
-                let device = ObjectPath::try_from(Self::get_wifi_device_path().await).unwrap();
                 let specific_object = ObjectPath::try_from("/").unwrap();
                 if access_point == ssid {
+                    let device = ObjectPath::try_from(Self::get_wifi_device_path().await).unwrap();
+                    let device_proxy = device::DeviceProxy::new(&connection, device.clone())
+                        .await
+                        .unwrap();
+                    device_proxy.disconnect().await.unwrap();
                     connection_proxy.delete().await;
+                    WirelessModel::scan();
                     break;
                 }
             }
@@ -505,6 +510,9 @@ impl WirelessModel {
                         flags: flags.to_string(),
                     })
                 }
+
+                println!("IN STREAMM {:?} ", connected_network);
+
                 WirelessModel::get()
                     .connected_network
                     .set(connected_network);
@@ -540,11 +548,16 @@ impl WirelessModel {
                         20 => WifiState::Disconnected,
                         30 => WifiState::Disconnecting,
                         40 => WifiState::Connecting,
-                        (50..=70) => WifiState::Connected,
+                        50 => WifiState::Connecting,
+                        (60..=70) => WifiState::Connected,
                         _ => WifiState::Unknown,
                     };
-                    if state != WifiState::Connected {
+
+                    if state == WifiState::Disconnected
+                        || (WirelessModel::get().forget_network.get().clone() == true)
+                    {
                         WirelessModel::get().connected_network.set(None);
+                        WirelessModel::get().forget_network.set(false);
                     }
                     WirelessModel::get().state.set(state);
                 }
@@ -587,14 +600,5 @@ impl WirelessModel {
         Self::stream_device_state();
         Self::stream_scan_result();
         Self::stream_known_networks();
-    }
-
-    pub fn select_network(network_id: String) {
-        RUNTIME.spawn(async move {
-            WirelessService::connect_to_known_network(network_id.as_str())
-                .await
-                .unwrap();
-            WirelessModel::update();
-        });
     }
 }

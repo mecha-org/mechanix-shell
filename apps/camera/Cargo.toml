@@ -37,6 +37,7 @@ serde = "1.0.217"
 serde_yaml = "0.9.34"
 dirs = "5.0.1"
 const_format = "0.2.34"
+chrono = "0.4.39"
 
 [package.metadata.deb]
 name = "mechanix-camera"

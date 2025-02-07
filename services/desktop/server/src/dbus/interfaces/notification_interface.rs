@@ -11,7 +11,6 @@ use zbus::{
     Connection,
 };
 
-use crate::settings::notifier::NotifierSettings;
 
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -217,15 +216,13 @@ impl NotificationBusInterface {
 pub struct Notifier {
     pub stack: Vec<Notification>,
     pub is_child_running: bool,
-    pub configs: NotifierSettings,
 }
 
 impl Notifier {
-    pub fn new(configs: NotifierSettings) -> Self {
+    pub fn new() -> Self {
         Self {
             stack: vec![],
             is_child_running: false,
-            configs,
         }
     }
 
@@ -241,13 +238,9 @@ impl Notifier {
                     println!("event is {:?}", event);
                     match event {
                         Event::New(n) => {
-                            println!(
-                                "{:?} {:?}",
-                                n,
-                                self.configs.run_commands.notification.clone()
-                            );
+                            
                             let mut args: Vec<String> = vec![];
-                            args.push(self.configs.run_commands.notification.clone());
+                            args.push("mechanix-notification".to_string());
                             args.push(format!("--app-name={:?}", n.app_name.clone()));
                             args.push(format!("--title={:?}", n.summary.clone()));
                             args.push(format!("--description={:?}", n.body.clone()));

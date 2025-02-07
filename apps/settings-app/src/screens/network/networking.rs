@@ -20,7 +20,7 @@ use mctk_core::{
     Color, Node,
 };
 use mctk_core::{event, widgets::HDivider};
-use mechanix_system_dbus_client::wireless::WirelessInfoResponse;
+use networkmanager::network_manager::WirelessInfoResponse;
 
 pub struct ClicableIconComponent {
     pub on_click: Option<Box<dyn Fn() -> Box<Message> + Send + Sync>>,
@@ -173,7 +173,7 @@ impl Component for NetworkingScreen {
                 ]
             )
             .push(node!(
-                Toggle::new(status)
+                Toggle::new(status.to_owned())
                     .toggle_type(widgets::ToggleType::Type3)
                     .on_change(Box::new(|value| {
                         WirelessModel::toggle_wireless();
@@ -767,25 +767,27 @@ impl Component for NetworkingScreen {
             size: 1.,
             color: Color::rgba(83., 83., 83., 1.)
         }));
-        if WirelessModel::get().connected_network.get().is_some() || status.clone() == true {
-            scrollable_section = scrollable_section.push(connected_network_row);
+        if status.to_owned() == true {
+            if WirelessModel::get().connected_network.get().is_some() {
+                scrollable_section = scrollable_section.push(connected_network_row);
 
-            scrollable_section = scrollable_section.push(
-                node!(
-                    Div::new().border(Color::rgb(83., 83., 83.), 0.8, (0., 0., 0., 0.)),
-                    lay![
-                        direction: Direction::Row,
-                        size: [480, Auto],
-                        cross_alignment: Alignment::Stretch
-                    ]
-                )
-                .push(node!(
-                    Div::new(),
-                    lay![
-                        size: [ 480, 1 ]
-                    ]
-                )),
-            );
+                scrollable_section = scrollable_section.push(
+                    node!(
+                        Div::new().border(Color::rgb(83., 83., 83.), 0.8, (0., 0., 0., 0.)),
+                        lay![
+                            direction: Direction::Row,
+                            size: [480, Auto],
+                            cross_alignment: Alignment::Stretch
+                        ]
+                    )
+                    .push(node!(
+                        Div::new(),
+                        lay![
+                            size: [ 480, 1 ]
+                        ]
+                    )),
+                );
+            }
 
             for (i, (network, network_id)) in
                 saved_available_networks.clone().into_iter().enumerate()
@@ -842,26 +844,36 @@ impl Component for NetworkingScreen {
             }));
         }
 
-        base = base.push(header_node!(
-            "Network",
-            Box::new(|| msg!(Message::ChangeRoute {
-                route: Routes::SettingsList
-            })),
-            "add_icon",
-            Box::new(|| msg!(Message::ChangeRoute {
-                route: Routes::Network {
-                    screen: NetworkScreenRoutes::AddNetwork {
-                        ssid: "".to_string()
+        if status.to_owned() == true {
+            base = base.push(header_node!(
+                "Network",
+                Box::new(|| msg!(Message::ChangeRoute {
+                    route: Routes::SettingsList
+                })),
+                "add_icon",
+                Box::new(|| msg!(Message::ChangeRoute {
+                    route: Routes::Network {
+                        screen: NetworkScreenRoutes::AddNetwork {
+                            ssid: "".to_string()
+                        }
                     }
-                }
-            })),
-            "wireless_settings",
-            Box::new(|| msg!(Message::ChangeRoute {
-                route: Routes::Network {
-                    screen: NetworkScreenRoutes::NetworkSettings
-                }
-            }))
-        ));
+                })),
+                "wireless_settings",
+                Box::new(|| msg!(Message::ChangeRoute {
+                    route: Routes::Network {
+                        screen: NetworkScreenRoutes::NetworkSettings
+                    }
+                }))
+            ));
+        } else {
+            base = base.push(header_node!(
+                "Network",
+                Box::new(|| msg!(Message::ChangeRoute {
+                    route: Routes::SettingsList
+                }))
+            ));
+        }
+
         base = base.push(content_node);
 
         Some(base)

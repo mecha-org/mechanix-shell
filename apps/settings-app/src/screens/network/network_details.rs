@@ -19,7 +19,7 @@ use mctk_core::{
 };
 use mctk_macros::{component, state_component_impl};
 
-use mechanix_system_dbus_client::wireless::WirelessInfoResponse;
+use networkmanager::network_manager::WirelessInfoResponse;
 
 enum NetworkDetailsMessage {
     openModel(bool),
@@ -359,6 +359,7 @@ impl Component for NetworkDetails {
             IconType::Png,
             Box::new(move || {
                 // WirelessModel::disconnect();
+                WirelessModel::get().forget_network.set(true);
                 WirelessModel::forget_saved_network(connected_network.clone().name.to_string());
                 msg!(Message::ChangeRoute {
                     route: Routes::Network {

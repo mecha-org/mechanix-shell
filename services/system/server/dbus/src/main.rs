@@ -7,13 +7,13 @@ use config::read_configs_yml;
 
 use interfaces::{
     hw_buttons_notification_stream, BluetoothBusInterface, DisplayBusInterface,
-    HostMetricsBusInterface, HwButtonInterface, SecurityBusInterface, WirelessBusInterface,
+     HwButtonInterface, 
+    // SecurityBusInterface,
 };
 
-use interfaces::{
-    bluetooth_event_notification_stream, host_metrics_event_notification_stream,
-    wireless_event_notification_stream,
-};
+use interfaces::
+    bluetooth_event_notification_stream
+;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -43,28 +43,6 @@ async fn main() -> Result<()> {
 
     handles.push(_bluetooth_handle);
 
-    // let wireless_bus = WirelessBusInterface {
-    //     path: config.interfaces.network.device.clone(),
-    // };
-    // let _wireless_bus_connection = connection::Builder::system()?
-    //     .name("org.mechanix.services.Wireless")?
-    //     .serve_at("/org/mechanix/services/Wireless", wireless_bus.clone())?
-    //     .build()
-    //     .await?;
-
-    // let wireless_handle = tokio::spawn(async move {
-    //     if let Err(e) = wireless_event_notification_stream(
-    //         config.interfaces.network.device.clone(),
-    //         &wireless_bus,
-    //         &_wireless_bus_connection,
-    //     )
-    //     .await
-    //     {
-    //         println!("Error in wireless notification stream: {}", e);
-    //     }
-    // });
-
-    // handles.push(wireless_handle);
 
     let display_bus = DisplayBusInterface {
         path: config.interfaces.display.device.clone(),
@@ -75,25 +53,6 @@ async fn main() -> Result<()> {
         .build()
         .await?;
 
-    let host_metrics_bus = HostMetricsBusInterface {};
-    let host_metrics_bus_connection = connection::Builder::system()?
-        .name("org.mechanix.services.HostMetrics")?
-        .serve_at(
-            "/org/mechanix/services/HostMetrics",
-            host_metrics_bus.clone(),
-        )?
-        .build()
-        .await?;
-
-    let _host_metrics_handle = tokio::spawn(async move {
-        if let Err(e) =
-            host_metrics_event_notification_stream(&host_metrics_bus, &host_metrics_bus_connection)
-                .await
-        {
-            println!("Error in host_metrics_handle notification stream: {}", e)
-        }
-    });
-
     let hw_button_bus = HwButtonInterface {};
     let _hw_button_bus_connection = connection::Builder::system()?
         .name("org.mechanix.services.HwButton")?
@@ -101,12 +60,12 @@ async fn main() -> Result<()> {
         .build()
         .await?;
 
-    let security_bus = SecurityBusInterface {};
-    let _security_bus_connection = connection::Builder::system()?
-        .name("org.mechanix.services.Security")?
-        .serve_at("/org/mechanix/services/Security", security_bus)?
-        .build()
-        .await?;
+    // let security_bus = SecurityBusInterface {};
+    // let _security_bus_connection = connection::Builder::system()?
+    //     .name("org.mechanix.services.Security")?
+    //     .serve_at("/org/mechanix/services/Security", security_bus)?
+    //     .build()
+    //     .await?;
 
     let power_button_path = config.interfaces.hw_buttons.power.path.clone();
     let home_button_path = config.interfaces.hw_buttons.home.path.clone();

@@ -1,37 +1,16 @@
-[package]
-name = "mechanix-shell"
-description = "Touch optimized GUI shell for handheld devices running on wayland compositors"
-version.workspace = true
-edition.workspace = true
-authors.workspace = true
-license.workspace = true
-repository.workspace = true
-homepage.workspace = true
-categories.workspace = true
-keywords.workspace = true
-
 [workspace]
+resolver = "2"
 members = [
-    # "app-drawer",
     # "greeter",
-    # "home-screen",
     "launcher",
     "keyboard",
-    # "lock-screen",
     # "polkit-agent",
     # "rotate-daemon",
-    # "settings-panel",
-    # "status-bar",
-    # "wallpaper-daemon",
     "commons/*",
-    # "app-switcher",
-    # "power-options",
     # "notification"
 ]
 
-[[bin]]
-name = "mechanix-wallpaper-daemon"
-path = "wallpaper-daemon/src/main.rs"
+default-members = ["launcher", "keyboard"]
 
 [workspace.package]
 version = "0.1.16"

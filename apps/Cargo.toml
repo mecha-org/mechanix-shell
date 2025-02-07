@@ -6,10 +6,10 @@ members = [
 default-members = ["settings-app", "camera",  "files"]
 
 [workspace.package]
-version = "0.1.15"
+version = "0.1.16"
 authors = [
    "Sweta <swetar@mechasystems.com>", 
-   "Naman <namana-mecha@mechasystems.com>",
+   "Naman <namana@mechasystems.com>",
    "Minesh <mineshp-mecha@mechasystems.com>",
 ]
 edition = "2021"
@@ -38,3 +38,4 @@ tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"]}
 anyhow = { version = "1.0.75", features = ["backtrace"]}
 tokio = { version = "1.33", features = ["full"] }
+networkmanager = { path = "../commons/networkmanager"}

@@ -17,7 +17,7 @@ use mctk_core::{
     widgets::{self, Div, IconButton, IconType, Text, Toggle},
     Color, Node,
 };
-use mechanix_system_dbus_client::wireless::WirelessInfoResponse;
+use networkmanager::network_manager::WirelessInfoResponse;
 
 #[derive(Debug)]
 pub struct NetworkDetailsState {}
