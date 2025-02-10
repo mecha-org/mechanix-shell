@@ -86,10 +86,10 @@ impl Carousel {
         let start_position = self.state_ref().drag_start_position;
         let mut scroll_position = self.state_ref().scroll_position;
         let delta_position = physical_delta.x.neg();
-        let max_position = current_inner_scale.unwrap().width - current_physical_aabb.size().width;
+        let max_position = current_inner_scale.unwrap_or_default().width - current_physical_aabb.size().width;
         scroll_position.x = (start_position.x + delta_position)
             .round()
-            .min(max_position)
+            .min(max_position.max(0.0))
             .max(0.0);
         self.state_mut().scroll_position = scroll_position;
     }
@@ -168,9 +168,9 @@ impl Component for Carousel {
                 // let x = (children_len - 2) as f32 * 180. + (children_len - 2 - 1) as f32 * 180.;
                 // + self.spacing().width / 2.;
                 // println!("total_width is {:?}", total_width);
-                self.state_mut().scroll_position = Point::new(total_width - 480., 0.0);
+                self.state_mut().scroll_position = Point::new(total_width - aabb.width(), 0.0);
                 // }
-                self.state_mut().init_scroll_position_set = true;
+               self.state_mut().init_scroll_position_set = true;
             }
         }
         self.children = updated_children;
@@ -213,11 +213,11 @@ impl Component for Carousel {
                 let start_position = self.state_ref().drag_start_position;
                 let mut scroll_position = self.state_ref().scroll_position;
                 let delta_position = *drag_x;
-                let max_position = self.state_ref().inner_scale.unwrap().width
-                    - self.state_ref().aabb.unwrap().size().width;
+                let max_position = self.state_ref().inner_scale.unwrap_or_default().width
+                    - self.state_ref().aabb.unwrap_or_default().size().width;
                 scroll_position.x = (start_position.x + delta_position)
                     .round()
-                    .min(max_position)
+                    .min(max_position.max(0.0))
                     .max(0.0);
                 self.state_mut().scroll_position = scroll_position;
             }
@@ -236,11 +236,11 @@ impl Component for Carousel {
                 let start_position = self.state_ref().drag_start_position;
                 let mut scroll_position = self.state_ref().scroll_position;
                 let delta_position = drag_x;
-                let max_position = self.state_ref().inner_scale.unwrap().width
-                    - self.state_ref().aabb.unwrap().size().width;
+                let max_position = self.state_ref().inner_scale.unwrap_or_default().width
+                    - self.state_ref().aabb.unwrap_or_default().size().width;
                 scroll_position.x = (start_position.x + delta_position)
                     .round()
-                    .min(max_position)
+                    .min(max_position.max(0.0))
                     .max(0.0);
                 self.state_mut().transition = Some(TransitionPositions {
                     from: self.state_ref().scroll_position,
