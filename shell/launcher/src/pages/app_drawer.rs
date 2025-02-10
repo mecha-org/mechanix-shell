@@ -154,7 +154,7 @@ impl Component for AppDrawer {
                 cross_alignment: Alignment::Stretch,
                 direction: Direction::Column,
                 position_type: Absolute,
-                position: [self.swipe, 0., 0., 0.],
+                position: [self.swipe as f32, 0., 0., 0.],
             ]
         )
         .key(self.swipe as u64);
