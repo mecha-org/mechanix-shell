@@ -283,14 +283,9 @@ impl WirelessModel {
                     .unwrap()
                     .to_string();
 
-                let specific_object = ObjectPath::try_from("/").unwrap();
+                // let specific_object = ObjectPath::try_from("/").unwrap();
                 if access_point == ssid {
-                    let device = ObjectPath::try_from(Self::get_wifi_device_path().await).unwrap();
-                    let device_proxy = device::DeviceProxy::new(&connection, device.clone())
-                        .await
-                        .unwrap();
-                    device_proxy.disconnect().await.unwrap();
-                    connection_proxy.delete().await;
+                    let _ = connection_proxy.delete().await; // this will remove saved/connected network credentials
                     WirelessModel::scan();
                     break;
                 }
@@ -298,6 +293,7 @@ impl WirelessModel {
         });
     }
 
+    // // NOTE: this disables wireless connection & network connection credential will remain saved
     pub fn disconnect() {
         RUNTIME.spawn(async {
             let connection = zbus::Connection::system().await.unwrap();
@@ -544,12 +540,15 @@ impl WirelessModel {
             let mut stream = proxy.receive_state_changed().await;
             while let Some(state_changed) = stream.next().await {
                 if let Ok(state) = state_changed.get().await {
+                    println!("============> Wireless state: {}", state);
                     let state = match state {
-                        20 => WifiState::Disconnected,
-                        30 => WifiState::Disconnecting,
-                        40 => WifiState::Connecting,
-                        50 => WifiState::Connecting,
-                        (60..=70) => WifiState::Connected,
+                        20 => WifiState::Disconnecting,
+                        30 => WifiState::Disconnected,
+                        (40..60) => WifiState::Connecting,
+                        70 => WifiState::Connected,
+                        100 => WifiState::Connected,
+                        110 => WifiState::Disconnecting,
+                        // (60..=70) => WifiState::Connected,
                         _ => WifiState::Unknown,
                     };
 
