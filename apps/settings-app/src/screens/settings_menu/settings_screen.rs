@@ -353,7 +353,7 @@ impl Component for SettingsScreen {
         );
 
         list_items = list_items.push(network_div);
-        list_items = list_items.push(bluetooth_div);
+        // list_items = list_items.push(bluetooth_div);
         list_items = list_items.push(display_div);
         // list_items = list_items.push(appearance_div);
         list_items = list_items.push(battery_div);
