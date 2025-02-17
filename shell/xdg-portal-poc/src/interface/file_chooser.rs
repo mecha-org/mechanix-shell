@@ -1,12 +1,12 @@
+use tokio::time::{self, Duration};
+use zbus::zvariant;
 use zbus::{
     fdo::Error as ZbusError,
     interface,
     zvariant::{DeserializeDict, SerializeDict, Type},
     SignalContext,
 };
-
-use tokio::time::{self, Duration};
-use zvariant::DynamicType;
+// use zvariant::DynamicType;
 
 #[derive(Clone, Copy)]
 pub struct FileChooser {}

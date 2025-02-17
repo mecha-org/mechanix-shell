@@ -22,4 +22,3 @@ serde_yaml = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 anyhow = { workspace = true }
-zvariant = "5.4.0"
