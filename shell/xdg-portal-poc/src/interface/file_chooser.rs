@@ -23,8 +23,7 @@ pub struct SaveFileOptions {}
 #[zvariant(signature = "a{sv}")]
 pub struct SaveFilesOptions {}
 
-// Fix: Removed invalid syntax and ensured correct struct name
-#[zbus::interface(name = "org.mechanix.services.FileChooser")] // (/* &zvariant::ObjectPath<'_> */)
+#[zbus::interface(name = "org.freedesktop.impl.portal.FileChooser")]
 impl FileChooser {
     async fn open_file(
         &self,
