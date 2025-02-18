@@ -26,3 +26,27 @@ $ /usr/libexec/xdg-desktop-portal -v
 ```
 `echo $XDG_CURRENT_DESKTOP`
 ```
+`echo $XDG_CURRENT_DESKTOP`
+
+`journalctl -xe | grep dbus`  for debugging dbus
+
+`systemctl --user restart xdg-desktop-portal` restart xdg portals
+
+command to check whether backend is working or not
+```busctl --user introspect org.mechanix.services.FileChooser /org/mechanix/services/FileChooser```
+
+
+this command apparently works to check the bus
+
+```
+gdbus call --session \
+    --dest org.mechanix.services.FileChooser \
+    --object-path /org/mechanix/services/FileChooser \
+    --method org.freedesktop.impl.portal.FileChooser.OpenFile \
+    "/org/mechanix/services/FileChooser" \
+    "com.example.app" \
+    "" \
+    "Open a file" \
+    "{}"
+
+```
