@@ -1,10 +1,12 @@
-name: Apps - Build aarch64
+name: GUI - Build and Release
 on:
   push:
     branches:
       - main
-      - dev
-      - dev-arm64-build
+
+permissions:
+  contents: write
+  pull-requests: write
 
 env:
   CARGO_INCREMENTAL: 0
@@ -19,29 +21,150 @@ env:
   MECHANIX_APTLY_S3_PUBLISH_ENDPOINT: ${{ vars.MECHANIX_APTLY_S3_PUBLISH_ENDPOINT }}
 
 jobs:
+  release_please:
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.release.outputs['apps--tag_name'] }}
+      release_created: ${{ steps.release.outputs.releases_created }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: mechanix-gui-release-config.json
+          manifest-file: .mechanix-gui-release-manifest.json
+          target-branch: ${{ github.ref_name }}
+      
+      - name: Print release outputs for debugging
+        continue-on-error: true
+        env:
+          RELEASE_OUTPUTS: ${{ toJson(steps.release.outputs) }} 
+        run: |
+          echo "Release outputs: $RELEASE_OUTPUTS"
+          echo "release created: $release_created"
+  
   build:
     environment: dev
     name: ${{ matrix.name }}
+    needs: release_please
+    if: ${{ needs.release_please.outputs.release_created == 'true' }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: Settings
+          - name: Settings (arm64)
             package: mechanix-settings
-            artifact: mechanix-settings-aarch64-unknown-linux-gnu.tar.gz
+            artifact: mechanix-settings-linux-arm64.tar.gz
             path: apps
+            runs_on: ubicloud-standard-2-arm
+            arch: arm64
 
-          - name: Camera
+          - name: Settings (amd64)
+            package: mechanix-settings
+            artifact: mechanix-settings-linux-amd64.tar.gz
+            path: apps
+            runs_on: ubuntu-22.04
+            arch: amd64
+
+          - name: Camera (arm64)
             package: mechanix-camera
-            artifact: mechanix-camera-aarch64-unknown-linux-gnu.tar.gz
+            artifact: mechanix-camera-linux-arm64.tar.gz
             path: apps
-      
-          - name: Files
-            package: mechanix-files
-            artifact: mechanix-files-aarch64-unknown-linux-gnu.tar.gz
-            path: apps
+            runs_on: ubicloud-standard-2-arm
+            arch: arm64
 
-    runs-on: ubicloud-standard-2-arm
+          - name: Camera (amd64)
+            package: mechanix-camera
+            artifact: mechanix-camera-linux-amd64.tar.gz
+            path: apps
+            runs_on: ubuntu-22.04
+            arch: amd64
+      
+          - name: Files (arm64)
+            package: mechanix-files
+            artifact: mechanix-files-linux-arm64.tar.gz
+            path: apps
+            runs_on: ubicloud-standard-2-arm
+            arch: arm64
+          
+          - name: Files (amd64)
+            package: mechanix-files
+            artifact: mechanix-files-linux-amd64.tar.gz
+            path: apps
+            runs_on: ubuntu-22.04
+            arch: amd64
+
+          - name: system dbus service (arm64)
+            package: mechanix_system_dbus_server
+            artifact: mechanix_system_dbus_server-linux-arm64.tar.gz
+            path: services
+            runs_on: ubicloud-standard-2-arm
+            arch: arm64
+
+          - name: system dbus service (amd64)
+            package: mechanix_system_dbus_server
+            artifact: mechanix_system_dbus_server-linux-amd64.tar.gz
+            path: services
+            runs_on: ubuntu-22.04
+            arch: amd64
+
+          - name: desktop dbus service (arm64)
+            package: mechanix_desktop_dbus_server
+            artifact: mechanix_desktop_dbus_server-linux-arm64.tar.gz
+            path: services
+            runs_on: ubicloud-standard-2-arm
+            arch: arm64
+
+          - name: desktop dbus service (amd64)
+            package: mechanix_desktop_dbus_server
+            artifact: mechanix_desktop_dbus_server-linux-amd64.tar.gz
+            path: services
+            runs_on: ubuntu-22.04
+            arch: amd64
+
+          - name: store server (arm64)
+            package: mechanix_store_server
+            artifact: mechanix_store_server-linux-arm64.tar.gz
+            path: services
+            runs_on: ubicloud-standard-2-arm
+            arch: arm64
+
+          - name: store server (amd64)
+            package: mechanix_store_server
+            artifact: mechanix_store_server-linux-amd64.tar.gz
+            path: services
+            runs_on: ubuntu-22.04
+            arch: amd64
+
+          - name: Laucher (arm64)
+            package: mechanix-launcher
+            artifact: mechanix-launcher-linux-arm64.tar.gz
+            path: shell
+            runs_on: ubicloud-standard-2-arm
+            arch: arm64
+
+          - name: Laucher (amd64)
+            package: mechanix-launcher
+            artifact: mechanix-launcher-linux-amd64.tar.gz
+            path: shell
+            runs_on: ubuntu-22.04
+            arch: amd64
+    
+          - name: Keyboard (arm64)
+            package: mechanix-keyboard
+            artifact: mechanix-keyboard-linux-arm64.tar.gz
+            path: shell
+            runs_on: ubicloud-standard-2-arm
+            arch: arm64
+
+          - name: Keyboard (amd64)
+            package: mechanix-keyboard
+            artifact: mechanix-keyboard-linux-amd64.tar.gz
+            path: shell
+            runs_on: ubuntu-22.04
+            arch: amd64
+
+    runs-on: ${{ matrix.runs_on }}
     continue-on-error: false
     steps:
       - name: Setup | Checkout
@@ -145,14 +268,16 @@ jobs:
             "Signing": {"Skip": true}
           }' ${{ env.MECHANIX_APTLY_SERVER_ENDPOINT }}/api/publish/s3:${{env.MECHANIX_APTLY_S3_PUBLISH_ENDPOINT}}:/${{ env.MECHANIX_APTLY_DEB_REPOSITORY_DISTRO }}    
       
+
       - name: Prepare artifacts [${{ matrix.package }}]
         run: |
           mkdir build
           cp ${{ matrix.path }}/target/release/${{ matrix.package }} ./build
           cp ${{ matrix.path }}/target/debian/*.deb ./build
+          tar -czvf ${{ matrix.artifact }} ./build
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Build | Add Artifacts to Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: ${{ matrix.artifact }}
-          path: ./build/*
+          files: ${{ matrix.artifact }}  # No need for ./build/ here
+          tag_name: ${{ needs.release_please.outputs.tag_name }}

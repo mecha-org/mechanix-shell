@@ -12,8 +12,15 @@ members = [
 
 default-members = ["launcher", "keyboard"]
 
+[package]
+name = "mechanix-shell"
+version = "0.1.0"
+
+[[bin]]
+name = "shell"
+path = "launcher/src/main.rs"
+
 [workspace.package]
-version = "0.1.16"
 authors = ["Akshay Raina <akshayr@mechasystems.com>", "Shoaib Merchant <shoaibm@mechasystems.com>"]
 edition = "2021"
 license = "MIT"

@@ -1,7 +1,7 @@
 [package]
 name = "echo_client"
 description = "Echo client for the Mechanix shell"
-version.workspace = true
+version = "0.1.0"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
