@@ -1,0 +1,51 @@
+{
+  "plugins": [
+    {
+      "type": "linked-versions",
+      "groupName": "group of apps, services and shell",
+      "components": [
+        "mechanix-gui"
+      ],
+      "merge": true
+    }
+  ],
+  "separate-pull-requests": false,
+  "commit-search-depth": 50,
+  "release-search-depth": 50,
+  "always-link-local": true,
+  "include-v-in-tag": true,
+  "tag-separator": "@",
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": true,
+  "draft": false,
+  "prerelease": false,
+  "pull-request-header": "🤖 Release created:",
+  "packages": {
+    "apps": {
+      "component": "mechanix-gui",
+      "release-type": "rust",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "services": {
+      "component": "mechanix-gui",
+      "release-type": "rust",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "shell": {
+      "component": "mechanix-gui",
+      "release-type": "rust",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "commons": {
+      "component": "mechanix-gui",
+      "release-type": "rust",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "config": {
+      "component": "mechanix-gui",
+      "release-type": "rust",
+      "changelog-path": "CHANGELOG.md"
+    }
+  },
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
+}

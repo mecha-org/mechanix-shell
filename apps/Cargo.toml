@@ -5,8 +5,15 @@ members = [
 ]
 default-members = ["settings-app", "camera",  "files"]
 
+[package]
+name = "apps"
+version = "0.1.0"
+
+[[bin]]
+name = "files"
+path = "files/src/main.rs"
+
 [workspace.package]
-version = "0.1.17"
 authors = [
    "Sweta <swetar@mechasystems.com>", 
    "Naman <namana@mechasystems.com>",
