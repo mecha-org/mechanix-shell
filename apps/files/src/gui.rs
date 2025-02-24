@@ -136,7 +136,7 @@ pub fn read_entries(path: PathBuf) -> Vec<PathBuf> {
 #[state_component_impl(FileManagerState)]
 impl Component for FileManager {
     fn init(&mut self) {
-        let current_path = PathBuf::from("/home/mecha/);
+        let current_path = PathBuf::from("/home/mecha/");
         let entries = read_entries(current_path.clone());
 
         self.state = Some(FileManagerState {
@@ -176,11 +176,10 @@ impl Component for FileManager {
                         self.state_mut().file_is_image = false;
                         self.state_mut().file_is_pdf = false;
                         self.state_mut().file_no_preview = false;
-                    }
-                    if self.state_mut().file_details_open {
+                    } else if self.state_mut().file_details_open {
                         self.state_mut().file_details_open = false;
                     } else {
-                        if let Some(parent) = self.state_ref().current_path.parent() {
+                        if let Some(parent) = self.state_ref().current_path.clone().parent() {
                             self.state_mut().current_path = parent.to_path_buf();
                             self.state_mut().message = "Went back.".to_string();
                             self.state_mut().entries =
@@ -476,7 +475,11 @@ impl Component for FileManager {
                 }
                 Message::FetchFileContent => {
                     self.state_mut().message = "FetchFileContent".to_string();
-                    if let Some(reader) = &mut self.state_mut().file_reader {
+
+                    // Get a mutable reference to state once
+                    let state = self.state_mut();
+
+                    if let Some(reader) = &mut state.file_reader {
                         let mut lines = Vec::new();
 
                         // Read the next 15 lines
@@ -490,22 +493,25 @@ impl Component for FileManager {
                             }
                         }
 
-                        // Append new lines to the existing content in state
                         if !lines.is_empty() {
-                            if let Some(existing_content) = &mut self.state_mut().file_content {
-                                existing_content.push('\n');
-                                existing_content.push_str(&lines.join("\n"));
-                            } else {
-                                self.state_mut().file_content = Some(lines.join("\n"));
+                            // Ensure `file_content` is initialized before appending
+                            match &mut state.file_content {
+                                Some(existing_content) => {
+                                    existing_content.push('\n');
+                                    existing_content.push_str(&lines.join("\n"));
+                                }
+                                None => {
+                                    state.file_content = Some(lines.join("\n"));
+                                }
                             }
                         } else {
                             // Handle end-of-file: no more lines to read
-                            self.state_mut().file_no_preview = true;
-                            self.state_mut().message = "End of file reached.".to_string();
-                            self.state_mut().file_reader = None;
+                            state.file_no_preview = true;
+                            state.message = "End of file reached.".to_string();
+                            state.file_reader = None;
                         }
                     } else {
-                        self.state_mut().message = "No file is open for reading.".to_string();
+                        state.message = "No file is open for reading.".to_string();
                     }
                 }
                 Message::GetDetailsFile => {
