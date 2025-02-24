@@ -20,7 +20,7 @@ async fn main() -> Result<(), anyhow::Error> {
         .await?;
     file_chooser_connection
         .object_server()
-        .at("/org/mechanix/services/FileChooser", file_chooser_bus)
+        .at("/org/freedesktop/portal/desktop", file_chooser_bus)
         .await?;
 
     let mut assets: HashMap<String, AssetParams> = HashMap::new();
