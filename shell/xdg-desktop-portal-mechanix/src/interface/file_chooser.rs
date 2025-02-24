@@ -1,4 +1,6 @@
 use crate::connections::PortalResponse;
+use crate::gui::xdg_portal_handler::Message;
+use mctk_core::msg;
 use tokio::time::{self, Duration};
 use zbus::zvariant;
 use zbus::{
@@ -9,6 +11,8 @@ use zbus::{
 };
 // use zvariant::DynamicType;
 type Filter = (String, Vec<(u32, String)>);
+type Filters = Vec<Filter>;
+type Choices = Vec<(String, String, Vec<(String, String)>, String)>;
 
 #[derive(Clone, Copy)]
 pub struct FileChooser {}
@@ -33,11 +37,33 @@ pub struct OpenFileOptions {}
 
 #[derive(zvariant::DeserializeDict, zvariant::Type, Clone, Debug)]
 #[zvariant(signature = "a{sv}")]
-pub struct SaveFileOptions {}
+pub struct SaveFileOptions {
+    accept_label: Option<String>,
+    #[allow(dead_code)]
+    modal: Option<bool>,
+    filters: Option<Filters>,
+    current_filter: Option<Filter>,
+    choices: Option<Choices>,
+    current_name: Option<String>,
+    current_folder: Option<Vec<u8>>,
+    #[allow(dead_code)]
+    current_file: Option<Vec<u8>>,
+}
 
 #[derive(zvariant::DeserializeDict, zvariant::Type, Clone, Debug)]
 #[zvariant(signature = "a{sv}")]
-pub struct SaveFilesOptions {}
+pub struct SaveFilesOptions {
+    accept_label: Option<String>,
+    #[allow(dead_code)]
+    modal: Option<bool>,
+    filters: Option<Filters>,
+    current_filter: Option<Filter>,
+    choices: Option<Choices>,
+    current_name: Option<String>,
+    current_folder: Option<Vec<u8>>,
+    #[allow(dead_code)]
+    current_file: Option<Vec<u8>>,
+}
 
 #[zbus::interface(name = "org.freedesktop.impl.portal.FileChooser")]
 impl FileChooser {
@@ -49,9 +75,6 @@ impl FileChooser {
         title: &str,
         options: OpenFileOptions,
     ) -> PortalResponse<FileChooserResult> {
-        dbg!("open file has been called");
-        println!("Open File has been called");
-
         self.run(
             handle,
             app_id,
@@ -70,8 +93,6 @@ impl FileChooser {
         title: &str,
         options: SaveFileOptions,
     ) -> PortalResponse<FileChooserResult> {
-        dbg!("save file has been called");
-        println!("Save File has been called");
         self.run(
             handle,
             app_id,
@@ -90,8 +111,6 @@ impl FileChooser {
         title: &str,
         options: SaveFilesOptions,
     ) -> PortalResponse<FileChooserResult> {
-        dbg!("save files has been called");
-        println!("Save Files has been called");
         self.run(
             handle,
             app_id,
@@ -112,12 +131,21 @@ impl FileChooser {
         title: &str,
         options: FileChooserOptions,
     ) -> PortalResponse<FileChooserResult> {
-        dbg!("file chooser {handle}, {app_id}, {parent_window}, {title}, {options:?}");
+        dbg!(
+            "file chooser {:?}, {:?}, {:?}, {:?}, {:?}",
+            &handle,
+            &app_id,
+            &parent_window,
+            &title,
+            &options
+        );
 
         //send msg! regarding what to call
         //need to write logic for that
 
         // let msging: Result<(), ()> = Err(()); //this should be replaced by code that sends a msg![]
+
+        Box::new(|| msg!(Message::FileChooserRequested(options.clone())));
 
         match options {
             FileChooserOptions::OpenFile(_) => {
@@ -129,11 +157,25 @@ impl FileChooser {
 
                 PortalResponse::Success(selected_files)
             }
-            FileChooserOptions::SaveFiles(_) => {
-                todo!()
+            FileChooserOptions::SaveFile(s) => {
+                let selected_files = FileChooserResult {
+                    uris: vec![("file:///home/vrn21/Downloads/".to_owned()
+                        + &s.current_name.unwrap())
+                        .to_string()],
+                    choices: vec![],
+                    current_filter: None,
+                };
+                PortalResponse::Success(selected_files)
             }
-            FileChooserOptions::SaveFile(_) => {
-                todo!()
+            FileChooserOptions::SaveFiles(s) => {
+                let selected_files = FileChooserResult {
+                    uris: vec![("file:///home/vrn21/Downloads/".to_owned()
+                        + &s.current_name.unwrap())
+                        .to_string()],
+                    choices: vec![],
+                    current_filter: None,
+                };
+                PortalResponse::Success(selected_files)
             }
         }
     }
