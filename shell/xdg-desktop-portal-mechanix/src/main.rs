@@ -30,23 +30,23 @@ async fn main() -> Result<(), anyhow::Error> {
         .at("/org/freedesktop/portal/desktop", file_chooser_bus)
         .await?;
 
-    let mut fonts = cosmic_text::fontdb::Database::new();
+    // let mut fonts = cosmic_text::fontdb::Database::new();
 
-    let mut assets: HashMap<String, AssetParams> = HashMap::new();
-    let svgs: HashMap<String, String> = HashMap::new();
+    // let mut assets: HashMap<String, AssetParams> = HashMap::new();
+    // let svgs: HashMap<String, String> = HashMap::new();
 
-    let window_info = WindowInfo {
-        id: "xdg-desktop-portal-filechooser".to_string(),
-        title: "xdg-desktop-portal".to_string(),
-        namespace: "xdg-desktop-portal".to_string(),
-    };
+    // let window_info = WindowInfo {
+    //     id: "xdg-desktop-portal-filechooser".to_string(),
+    //     title: "xdg-desktop-portal".to_string(),
+    //     namespace: "xdg-desktop-portal".to_string(),
+    // };
 
-    // Set the window options
-    let window_opts = WindowOptions {
-        height: 480 as u32,
-        width: 480 as u32,
-        scale_factor: 1.0,
-    };
+    // // Set the window options
+    // let window_opts = WindowOptions {
+    //     height: 480 as u32,
+    //     width: 480 as u32,
+    //     scale_factor: 1.0,
+    // };
 
     // assets.insert(
     //     "fold_icon".to_string(),
@@ -93,26 +93,28 @@ async fn main() -> Result<(), anyhow::Error> {
     //     AssetParams::new(settings.icons.unfold_dir_icon),
     // );
 
-    let (mut app, mut event_loop, ..) =
-        xdg_window::XdgWindow::open_blocking::<XDGPortal, XDGPortalParams>(
-            xdg_window::XdgWindowParams {
-                window_info,
-                window_opts,
-                fonts,
-                assets,
-                svgs,
-                ..Default::default()
-            },
-            XDGPortalParams {},
-        );
+    // let (mut app, mut event_loop, ..) =
+    //     xdg_window::XdgWindow::open_blocking::<XDGPortal, XDGPortalParams>(
+    //         xdg_window::XdgWindowParams {
+    //             window_info,
+    //             window_opts,
+    //             fonts,
+    //             assets,
+    //             svgs,
+    //             ..Default::default()
+    //         },
+    //         XDGPortalParams {},
+    //     );
 
     loop {
-        if app.is_exited {
-            break;
-        }
-        event_loop
-            .dispatch(Duration::from_millis(16), &mut app)
-            .unwrap();
+        std::future::pending::<()>().await; //comment this line if mctk app is running, lines below are uncommented
+
+        // if app.is_exited {
+        //     break;
+        // }
+        // event_loop
+        //     .dispatch(Duration::from_millis(16), &mut app)
+        //     .unwrap();
     }
 
     Ok(())

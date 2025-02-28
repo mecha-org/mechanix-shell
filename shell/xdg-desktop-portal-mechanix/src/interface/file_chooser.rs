@@ -33,7 +33,17 @@ pub enum FileChooserOptions {
 
 #[derive(zvariant::DeserializeDict, zvariant::Type, Clone, Debug)]
 #[zvariant(signature = "a{sv}")]
-pub struct OpenFileOptions {}
+pub struct OpenFileOptions {
+    accept_label: Option<String>,
+    #[allow(dead_code)]
+    modal: Option<bool>,
+    multiple: Option<bool>,
+    directory: Option<bool>,
+    filters: Option<Filters>,
+    current_filter: Option<Filter>,
+    choices: Option<Choices>,
+    current_folder: Option<Vec<u8>>,
+}
 
 #[derive(zvariant::DeserializeDict, zvariant::Type, Clone, Debug)]
 #[zvariant(signature = "a{sv}")]
@@ -145,10 +155,11 @@ impl FileChooser {
 
         // let msging: Result<(), ()> = Err(()); //this should be replaced by code that sends a msg![]
 
-        Box::new(|| msg!(Message::FileChooserRequested(options.clone())));
+        // Box::new(|| msg!(Message::FileChooserRequested(options.clone())));
 
         match options {
-            FileChooserOptions::OpenFile(_) => {
+            FileChooserOptions::OpenFile(s) => {
+                // dbg!(&s);
                 let selected_files = FileChooserResult {
                     uris: vec!["file:///home/vrn21/p.json".to_string()],
                     choices: vec![],
